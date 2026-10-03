@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Blood-marker risk model · live demo</title>
+<style>
+:root{--bg:#f5f7f9;--card:#fff;--ink:#13202b;--mut:#5c6a77;--line:#e2e7ec;--good:#0f766e;--bad:#c2410c;--warn:#a16207}
+@media(prefers-color-scheme:dark){:root{--bg:#0d1318;--card:#151d25;--ink:#e8eef3;--mut:#93a1ae;--line:#26323d;--good:#2dd4bf;--bad:#fb923c;--warn:#facc15}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+.wrap{max-width:1040px;margin:0 auto;padding:20px 16px 48px}
+h1{font-size:22px;margin:0 0 4px}h2{font-size:15px;margin:0 0 12px}
+.sub{color:var(--mut);margin:0 0 14px}
+.note{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--mut);margin-bottom:16px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}@media(max-width:820px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+.presets{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+button{font:inherit;font-size:13px;background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:5px 12px;cursor:pointer}
+button:hover{border-color:var(--good)}
+.row{display:grid;grid-template-columns:128px 1fr 78px;gap:10px;align-items:center;padding:5px 0}
+.row label{font-size:13px;line-height:1.2}.row small{display:block;color:var(--mut);font-size:11px}
+input[type=range]{width:100%;accent-color:var(--good)}
+input[type=number]{width:78px;font:inherit;font-size:13px;padding:4px 6px;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:6px}
+.big{font-size:40px;font-weight:700;line-height:1}.verdict{font-weight:600;margin:4px 0 10px}
+.meter{height:12px;border-radius:99px;background:var(--line);overflow:hidden}.meter i{display:block;height:100%;width:0;transition:width .25s,background .25s}
+.warn{color:var(--warn);font-size:12.5px;margin-top:8px;min-height:1em}
+.flow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12px;color:var(--mut);margin:10px 0 14px}
+.flow b{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:3px 8px;color:var(--ink);font-weight:500}
+.c{display:grid;grid-template-columns:118px 1fr 46px;gap:8px;align-items:center;font-size:12.5px;padding:3px 0}
+.c span:first-child small{display:block;color:var(--mut);font-size:11px}
+.bar{position:relative;height:14px}.bar:before{content:"";position:absolute;left:50%;top:0;bottom:0;border-left:1px solid var(--mut);opacity:.5}
+.bar i{position:absolute;top:2px;height:10px;border-radius:3px}
+.num{text-align:right;color:var(--mut);font-variant-numeric:tabular-nums}
+.eq{font-size:12.5px;color:var(--mut);border-top:1px solid var(--line);margin-top:10px;padding-top:8px;font-variant-numeric:tabular-nums}
+details{margin-top:16px}summary{cursor:pointer;font-weight:600}details p,details li{color:var(--mut);font-size:13.5px}
+</style></head><body><div class="wrap">
+<h1>Blood-marker risk model</h1>
+<p class="sub">Move the sliders and watch an XGBoost classifier respond in real time, including which markers pushed the result.</p>
+<div class="note"><b>Educational demo, not medical advice.</b> The model flags “any condition” from nine blood markers and was trained on a small dataset that includes synthetic rows. Never use it to make health decisions.</div>
+
+<div class="grid">
+  <div class="card"><h2>1 · Enter markers</h2>
+    <div class="presets" id="presets"></div><div id="inputs"></div></div>
+  <div class="card"><h2>2 · Model output</h2>
+    <div class="big" id="pct">–</div><div class="verdict" id="verdict">Loading…</div>
+    <div class="meter"><i id="fill"></i></div><div class="warn" id="warn"></div>
+    <div class="flow"><b>Your inputs</b>→<b>Standardize (x−mean)/std</b>→<b>XGBoost trees add up</b>→<b>Sigmoid</b>→<b>Probability</b></div>
+    <h2>What pushed the result</h2>
+    <div id="contrib"></div><div class="eq" id="eq"></div>
+  </div>
+</div>
+
+<details class="card"><summary>About the model &amp; its limits</summary>
+<ul>
+<li><b>Task:</b> binary classifier on 9 markers (cholesterol, HDL, LDL, triglycerides, blood pressure, heart rate, BMI, CRP). The label means “not healthy” for <i>any</i> condition in the source blood-sample dataset, not cardiovascular disease specifically.</li>
+<li><b>Training data:</b> 12,837 rows: 2,837 from the original dataset plus 10,000 synthetic rows (TVAE). About 79% of rows are labelled “not healthy”, so a model that always said “flagged” would score ~79%.</li>
+<li><b>Held-out results (20% split, 2,568 rows):</b> 90.9% accuracy; for the “healthy” class precision 0.81 / recall 0.72, for “not healthy” 0.93 / 0.96. Healthy people are missed as flagged about 1 time in 4.</li>
+<li><b>Reading the bars:</b> values are contributions in log-odds. Right (orange) pushes toward “flagged”, left (teal) away from it. They are explanations of this model, not of biology.</li>
+<li>Outside the training range (sliders span it) predictions are unreliable; the page warns you when that happens.</li>
+</ul></details>
+</div>
+<script>
+const $=s=>document.querySelector(s);let META,timer;
+async function init(){
+  META=await (await fetch('/api/meta')).json();
+  META.features.forEach((f,i)=>{
+    const r=document.createElement('div');r.className='row';
+    r.innerHTML=`<label for="n${i}">${f.name}<small>${f.unit}</small></label>
+    <input type="range" id="r${i}" min="${f.lo}" max="${f.hi}" step="${f.step}" aria-label="${f.name}">
+    <input type="number" id="n${i}" step="${f.step}">`;
+    $('#inputs').append(r);
+    const rg=r.querySelector('[type=range]'),nu=r.querySelector('[type=number]');
+    rg.oninput=()=>{nu.value=rg.value;go()};nu.oninput=()=>{rg.value=nu.value;go()};
+  });
+  META.presets.forEach(p=>{const b=document.createElement('button');b.textContent=p.label;b.onclick=()=>set(p.values);$('#presets').append(b)});
+  set(META.presets[0].values);
+}
+function set(v){META.features.forEach((f,i)=>{$('#n'+i).value=v[f.name];$('#r'+i).value=v[f.name]});go(0)}
+function go(ms=150){clearTimeout(timer);timer=setTimeout(run,ms)}
+async function run(){
+  const v={};for(const[i,f]of META.features.entries()){v[f.name]=parseFloat($('#n'+i).value);if(isNaN(v[f.name]))return}
+  let res,d;
+  try{res=await fetch('/api/predict',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(v)});d=await res.json()}
+  catch(e){$('#verdict').textContent='Cannot reach the server (it may be waking up, retry in a moment).';return}
+  if(!res.ok){$('#verdict').textContent=d.error;return}
+  const p=d.probability,col=d.flagged?'var(--bad)':'var(--good)';
+  $('#pct').textContent=(p*100).toFixed(1)+'%';$('#pct').style.color=col;
+  $('#verdict').textContent=d.flagged?'Flagged: model predicts “something is wrong”':'Not flagged: model predicts “healthy”';
+  $('#fill').style.width=(p*100)+'%';$('#fill').style.background=col;
+  const oor=d.features.filter(f=>f.out_of_range).map(f=>f.name);
+  $('#warn').textContent=oor.length?'⚠ Outside the training range: '+oor.join(', ')+'. Treat the output as unreliable.':'';
+  const mx=Math.max(...d.features.map(f=>Math.abs(f.contribution)),0.01);
+  $('#contrib').innerHTML=[...d.features].sort((a,b)=>Math.abs(b.contribution)-Math.abs(a.contribution)).map(f=>{
+    const w=Math.abs(f.contribution)/mx*50,pos=f.contribution>=0;
+    return `<div class="c"><span>${f.name}<small>${f.value} ${f.unit} · z=${f.z.toFixed(2)}</small></span>
+    <div class="bar"><i style="${pos?'left:50%':'right:50%'};width:${w}%;background:${pos?'var(--bad)':'var(--good)'}"></i></div>
+    <span class="num">${pos?'+':''}${f.contribution.toFixed(2)}</span></div>`}).join('');
+  $('#eq').textContent=`base ${d.base.toFixed(2)} + Σ pushes = log-odds ${d.logit.toFixed(2)} → sigmoid → ${(p*100).toFixed(1)}%`;
+}
+init();
+</script></body></html>

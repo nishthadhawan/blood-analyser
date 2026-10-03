@@ -1,0 +1,129 @@
+{
+ "features": [
+  {
+   "name": "Cholesterol",
+   "unit": "mg/dL",
+   "step": 1,
+   "mean": 155.60299152789952,
+   "scale": 18.93651637909515,
+   "lo": 125.0,
+   "hi": 200.0
+  },
+  {
+   "name": "HDL Cholesterol",
+   "unit": "mg/dL",
+   "step": 0.5,
+   "mean": 50.56686532281624,
+   "scale": 5.434535532397535,
+   "lo": 39.0,
+   "hi": 61.0
+  },
+  {
+   "name": "LDL Cholesterol",
+   "unit": "mg/dL",
+   "step": 1,
+   "mean": 95.98229915278995,
+   "scale": 15.424227805322895,
+   "lo": 70.0,
+   "hi": 130.0
+  },
+  {
+   "name": "Triglycerides",
+   "unit": "mg/dL",
+   "step": 1,
+   "mean": 87.99500925114423,
+   "scale": 26.279571491191607,
+   "lo": 50.0,
+   "hi": 150.0
+  },
+  {
+   "name": "Systolic Blood Pressure",
+   "unit": "mmHg",
+   "step": 1,
+   "mean": 102.03252507546986,
+   "scale": 7.201000708316025,
+   "lo": 89.0,
+   "hi": 120.0
+  },
+  {
+   "name": "Diastolic Blood Pressure",
+   "unit": "mmHg",
+   "step": 1,
+   "mean": 68.5285636381342,
+   "scale": 4.9863683367909335,
+   "lo": 59.0,
+   "hi": 80.0
+  },
+  {
+   "name": "Heart Rate",
+   "unit": "bpm",
+   "step": 1,
+   "mean": 82.9180465478625,
+   "scale": 10.27963201846601,
+   "lo": 60.0,
+   "hi": 100.0
+  },
+  {
+   "name": "BMI",
+   "unit": "kg/m\u00b2",
+   "step": 0.1,
+   "mean": 21.34356704645048,
+   "scale": 1.6069923664346966,
+   "lo": 18.0,
+   "hi": 25.0
+  },
+  {
+   "name": "C-reactive Protein",
+   "unit": "mg/L",
+   "step": 0.01,
+   "mean": 1.3851670074982958,
+   "scale": 0.7363402379406756,
+   "lo": -0.0,
+   "hi": 3.0
+  }
+ ],
+ "presets": [
+  {
+   "label": "Typical (median) profile",
+   "values": {
+    "Cholesterol": 155,
+    "HDL Cholesterol": 50.3,
+    "LDL Cholesterol": 95,
+    "Triglycerides": 84,
+    "Systolic Blood Pressure": 101,
+    "Diastolic Blood Pressure": 69,
+    "Heart Rate": 84,
+    "BMI": 21.5,
+    "C-reactive Protein": 1.47
+   }
+  },
+  {
+   "label": "Example the model does not flag",
+   "values": {
+    "Cholesterol": 174,
+    "HDL Cholesterol": 50.3,
+    "LDL Cholesterol": 83,
+    "Triglycerides": 115,
+    "Systolic Blood Pressure": 96,
+    "Diastolic Blood Pressure": 61,
+    "Heart Rate": 98,
+    "BMI": 19.0,
+    "C-reactive Protein": 2.31
+   }
+  },
+  {
+   "label": "Example the model flags",
+   "values": {
+    "Cholesterol": 127,
+    "HDL Cholesterol": 42.1,
+    "LDL Cholesterol": 109,
+    "Triglycerides": 98,
+    "Systolic Blood Pressure": 107,
+    "Diastolic Blood Pressure": 71,
+    "Heart Rate": 87,
+    "BMI": 23.9,
+    "C-reactive Protein": 1.2
+   }
+  }
+ ]
+}
